@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>dotnet-ExpenseSystem.ReportingService-9F5B76EF-5C93-441E-AAE5-8633D1A2AFE3</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ExpenseSystem.Database\ExpenseSystem.Database.csproj" />
+      <ProjectReference Include="..\ExpenseSystem.Shared\ExpenseSystem.Shared.csproj" />
+    </ItemGroup>
+</Project>

@@ -1,0 +1,95 @@
+name: Security Pipeline
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '**.cs'
+      - '**.json'
+      - '**.razor'
+
+jobs:
+  security_review:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+      
+    # 1. Code Review (Touchpoint #1)
+    - name: Run CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+      with:
+        languages: csharp
+      
+    # Custom vulnerability patterns scanning
+    - name: Scan for known vulnerability patterns
+      run: |
+        echo "Scanning for SQL Injection patterns..."
+        grep -r "FromSqlRaw" --include="*.cs" . || echo "No raw SQL found"
+        
+        echo "Scanning for XSS vulnerabilities..."
+        grep -r "Html.Raw" --include="*.cshtml" --include="*.razor" . || echo "No raw HTML found"
+        
+        echo "Scanning for insecure deserialization..."
+        grep -r "JsonSerializer.Deserialize" --include="*.cs" . || echo "No JSON deserialization found"
+      
+    # 5. Abuse Cases (Touchpoint #5)  
+    - name: Security Abuse Case Review
+      run: |
+        echo "Performing abuse case review..."
+        echo "This step would normally involve a manual review of security abuse cases"
+        echo "For automation, we can check if abuse case documentation exists:"
+        
+        if [ -f "SecurityAbuseCases.md" ]; then
+          echo "Abuse case documentation found."
+        else
+          echo "Warning: No abuse case documentation found."
+          echo "Creating a placeholder for documentation:"
+          cat > SecurityAbuseCases.md << 'EOL'
+          # Security Abuse Cases for ExpenseSystem
+          
+          This file should document potential abuse scenarios and how they are mitigated.
+          
+          Example abuse cases to consider:
+          - An employee attempting to view other employees' expenses
+          - A user attempting to approve their own expenses
+          - SQL injection in search functionality
+          - XSS in expense descriptions
+          EOL
+        fi
+      
+    # 6. Security Requirements (Touchpoint #6)
+    - name: Security Requirements Review
+      run: |
+        echo "Checking for security requirements documentation..."
+        
+        if [ -f "SecurityRequirements.md" ]; then
+          echo "Security requirements documentation found."
+        else
+          echo "Warning: No security requirements documentation found."
+          echo "Creating a placeholder for documentation:"
+          cat > SecurityRequirements.md << 'EOL'
+          # Security Requirements for ExpenseSystem
+          
+          This file should document security requirements for the application.
+          
+          Example requirements:
+          - All API endpoints must check authorization
+          - Passwords must be stored using strong hashing algorithms
+          - All user inputs must be validated
+          - HTTPS must be enforced for all communications
+          EOL
+        fi
+        
+    # 7. Security Operations (Touchpoint #7)
+    - name: Security Operations Check
+      run: |
+        echo "Checking for security operations configuration..."
+        
+        # Check for logging configuration
+        grep -r "Serilog" --include="*.csproj" --include="*.cs" . || echo "Warning: Serilog not found, consider implementing structured logging"
+        
+        # Check for HTTPS enforcement
+        grep -r "UseHttpsRedirection" --include="*.cs" . || echo "Warning: HTTPS redirection may not be properly configured"
+        
+        # Check for secure headers
+        grep -r "AddSecureHeaders" --include="*.cs" . || echo "Warning: Secure HTTP headers may not be properly configured"

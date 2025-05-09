@@ -1,0 +1,112 @@
+version: '3.8'
+
+services:
+  # Database
+  database:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong@Passw0rd
+    ports:
+      - "1433:1433"
+    volumes:
+      - db-data:/var/opt/mssql
+    networks:
+      - expense-network
+    # Sikkerhedsindstillinger
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+
+  # Backend API
+  api:
+    build:
+      context: .
+      dockerfile: ExpenseSystem.API/Dockerfile
+    ports:
+      - "7001:8080"
+    depends_on:
+      - database
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=database;Database=ExpenseSystem;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True
+      - ASPNETCORE_ENVIRONMENT=Development
+      - Jwt__Key=ThisIsNotASecureKeyAndShouldBeStoredInASecureVault12345678
+    networks:
+      - expense-network
+    # Sikkerhedsindstillinger
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  # Frontend Web Application
+  web:
+    build:
+      context: .
+      dockerfile: ExpenseSystem.Web/Dockerfile
+    ports:
+      - "7002:8080"
+    depends_on:
+      - api
+    environment:
+      - ApiBaseUrl=http://api:8080
+      - ASPNETCORE_ENVIRONMENT=Development
+    networks:
+      - expense-network
+    # Sikkerhedsindstillinger
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+
+  # Background Reporting Service
+  reporting-service:
+    build:
+      context: .
+      dockerfile: ExpenseSystem.ReportingService/Dockerfile
+    depends_on:
+      - database
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=database;Database=ExpenseSystem;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True
+      - DOTNET_ENVIRONMENT=Development
+    networks:
+      - expense-network
+    volumes:
+      - reports-data:/app/Reports
+    # Sikkerhedsindstillinger
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+  # Background Notification Service
+  notification-engine:
+    build:
+      context: .
+      dockerfile: ExpenseSystem.NotificationEngine/Dockerfile
+    depends_on:
+      - database
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=database;Database=ExpenseSystem;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=True
+      - DOTNET_ENVIRONMENT=Development
+    networks:
+      - expense-network
+    # Sikkerhedsindstillinger
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+
+networks:
+  expense-network:
+    driver: bridge
+
+volumes:
+  db-data:
+  reports-data:

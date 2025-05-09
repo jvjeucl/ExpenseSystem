@@ -1,0 +1,131 @@
+@page "/expenses/create"
+@page "/expenses/{Id:int}/edit"
+@page "/expenses/{Id:int}"
+@using ExpenseSystem.Shared.Models
+@using ExpenseSystem.Web.Data
+@inject ExpenseService ExpenseService
+@inject NavigationManager NavigationManager
+
+<PageTitle>@pageTitle - Expense System</PageTitle>
+
+<h3>@pageTitle</h3>
+
+@if (loading)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-6">
+            <EditForm Model="@expense" OnValidSubmit="HandleSubmit">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="form-group mb-3">
+                    <label for="title">Title</label>
+                    <InputText id="title" @bind-Value="expense.Title" class="form-control" disabled="@isReadOnly" />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="description">Description</label>
+                    <InputTextArea id="description" @bind-Value="expense.Description" class="form-control" rows="3" disabled="@isReadOnly" />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="amount">Amount</label>
+                    <InputNumber id="amount" @bind-Value="expense.Amount" class="form-control" disabled="@isReadOnly" />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="date">Date</label>
+                    <InputDate id="date" @bind-Value="expense.Date" class="form-control" disabled="@isReadOnly" />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="category">Category</label>
+                    <InputText id="category" @bind-Value="expense.Category" class="form-control" disabled="@isReadOnly" />
+                </div>
+
+                <div class="form-group mb-3">
+                    <label for="receipt">Receipt URL</label>
+                    <InputText id="receipt" @bind-Value="expense.ReceiptUrl" class="form-control" disabled="@isReadOnly" />
+                </div>
+
+                @if (!isReadOnly)
+                {
+                    <button type="submit" class="btn btn-primary">Save</button>
+                }
+                <button type="button" class="btn btn-secondary" @onclick="Cancel">Back</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private ExpenseDto expense = new() { Date = DateTime.Today };
+    private bool loading = true;
+    private bool isReadOnly = false;
+    private string pageTitle = "Create Expense";
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            // Viewing or editing an existing expense
+            var result = await ExpenseService.GetExpenseAsync(Id.Value);
+            if (result.Id > 0)
+            {
+                expense = result;
+                
+                // Determine if this is a view or edit page
+                var uri = NavigationManager.Uri;
+                isReadOnly = !uri.EndsWith("/edit");
+                pageTitle = isReadOnly ? "View Expense" : "Edit Expense";
+            }
+            else
+            {
+                NavigationManager.NavigateTo("/expenses");
+            }
+        }
+        else
+        {
+            pageTitle = "Create Expense";
+        }
+        
+        loading = false;
+    }
+
+    private async Task HandleSubmit()
+    {
+        Console.WriteLine("HandleSubmit called!");
+        bool success;
+    // Tilføj dette: Sæt SubmittedById eksplicit
+    // Brug den bruger-ID vi fik fra tidligere token (eller hardkod den til test)
+        expense.SubmittedById = "235723b9-4129-471a-b793-9af2c0bdb846";
+        if (Id.HasValue)
+        {
+            // Update
+            success = await ExpenseService.UpdateExpenseAsync(expense);
+        }
+        else
+        {
+            // Create
+            expense.Status = ExpenseStatus.Draft;
+            success = await ExpenseService.CreateExpenseAsync(expense);
+        }
+
+        if (success)
+        {
+            NavigationManager.NavigateTo("/expenses");
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/expenses");
+    }
+}

@@ -1,0 +1,90 @@
+@page "/login"
+@using System.ComponentModel.DataAnnotations
+@using System.Text.Json
+@using System.Text
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
+
+<PageTitle>Login - Expense System</PageTitle>
+
+<h3>Login</h3>
+
+<div class="row">
+    <div class="col-md-4">
+        <EditForm Model="@model" OnValidSubmit="HandleLogin">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="form-group mb-3">
+                <label for="username">Username</label>
+                <InputText id="username" @bind-Value="model.Username" class="form-control" />
+                <ValidationMessage For="@(() => model.Username)" />
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="password">Password</label>
+                <InputText id="password" type="password" @bind-Value="model.Password" class="form-control" />
+                <ValidationMessage For="@(() => model.Password)" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Login</button>
+            
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger mt-3">
+                    @errorMessage
+                </div>
+            }
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private LoginModel model = new();
+    private string errorMessage;
+
+    public class LoginModel
+    {
+        [Required]
+        public string Username { get; set; }
+
+        [Required]
+        public string Password { get; set; }
+    }
+
+    private async Task HandleLogin()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync($"api/auth/login", model);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<LoginResponse>(content, 
+                             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+
+                if (result?.Token != null)
+                {
+                    await JSRuntime.InvokeVoidAsync("localStorage.setItem", "authToken", result.Token);
+                    NavigationManager.NavigateTo("/", true);
+                }
+            }
+            else
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                errorMessage = content;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+    }
+
+    private class LoginResponse
+    {
+        public string Token { get; set; }
+    }
+}

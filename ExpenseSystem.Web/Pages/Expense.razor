@@ -1,0 +1,112 @@
+@page "/expenses"
+@using ExpenseSystem.Shared.Models
+@using ExpenseSystem.Web.Data
+@inject ExpenseService ExpenseService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Expenses - Expense System</PageTitle>
+
+<h3>My Expenses</h3>
+
+<div class="row mb-3">
+    <div class="col">
+        <button class="btn btn-primary" @onclick="CreateNewExpense">Create New Expense</button>
+    </div>
+    <div class="col-md-4">
+        <div class="input-group">
+            <input type="text" class="form-control" placeholder="Search..." @bind="searchTerm" @bind:event="oninput" />
+            <button class="btn btn-outline-secondary" type="button" @onclick="SearchExpenses">Search</button>
+        </div>
+    </div>
+</div>
+
+@if (loading)
+{
+    <p><em>Loading...</em></p>
+}
+else if (expenses == null || !expenses.Any())
+{
+    <p>No expenses found.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var expense in expenses)
+            {
+                <tr>
+                    <td>@expense.Title</td>
+                    <td>@expense.Amount.ToString("C")</td>
+                    <td>@expense.Date.ToShortDateString()</td>
+                    <td>@expense.Category</td>
+                    <td>@expense.Status</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" @onclick="() => ViewExpense(expense.Id)">View</button>
+                        @if (expense.Status == ExpenseStatus.Draft)
+                        {
+                            <button class="btn btn-sm btn-primary" @onclick="() => EditExpense(expense.Id)">Edit</button>
+                            <button class="btn btn-sm btn-success" @onclick="() => SubmitExpense(expense)">Submit</button>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<ExpenseDto> expenses;
+    private bool loading = true;
+    private string searchTerm = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadExpenses();
+    }
+
+    private async Task LoadExpenses()
+    {
+        loading = true;
+        expenses = await ExpenseService.GetExpensesAsync();
+        loading = false;
+    }
+
+    private void CreateNewExpense()
+    {
+        NavigationManager.NavigateTo("/expenses/create");
+    }
+
+    private void ViewExpense(int id)
+    {
+        NavigationManager.NavigateTo($"/expenses/{id}");
+    }
+
+    private void EditExpense(int id)
+    {
+        NavigationManager.NavigateTo($"/expenses/{id}/edit");
+    }
+
+    private async Task SubmitExpense(ExpenseDto expense)
+    {
+        expense.Status = ExpenseStatus.Submitted;
+        await ExpenseService.UpdateExpenseAsync(expense);
+        await LoadExpenses();
+    }
+
+    private async Task SearchExpenses()
+    {
+        loading = true;
+        expenses = await ExpenseService.SearchExpensesAsync(searchTerm);
+        loading = false;
+    }
+}

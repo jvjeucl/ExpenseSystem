@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>dotnet-ExpenseSystem.NotificationEngine-14C4A22B-4152-4905-BA5D-F3AC0C05E784</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ExpenseSystem.Database\ExpenseSystem.Database.csproj" />
+      <ProjectReference Include="..\ExpenseSystem.Shared\ExpenseSystem.Shared.csproj" />
+    </ItemGroup>
+</Project>
