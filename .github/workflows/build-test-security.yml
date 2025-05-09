@@ -10,6 +10,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: List repository contents
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Repository files:"
+          ls -la
+          echo "Looking for solution files:"
+          find . -name "*.sln"
+          
       - uses: actions/checkout@v3
 
       - name: Setup .NET
