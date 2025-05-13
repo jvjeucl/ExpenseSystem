@@ -1,0 +1,79 @@
+name: Generate Mermaid Diagram
+
+on:
+  workflow_call:
+    inputs:
+      requirements_status:
+        description: "Status for Requirements and Use Cases"
+        required: true
+        type: string
+        default: "pending"
+      architecture_status:
+        description: "Status for Architecture and Design"
+        required: true
+        type: string
+        default: "pending"
+      testplans_status:
+        description: "Status for Test Plans"
+        required: true
+        type: string
+        default: "pending"
+      code_status:
+        description: "Status for Code"
+        required: true
+        type: string
+        default: "pending"
+      results_status:
+        description: "Status for Tests and Test Results"
+        required: true
+        type: string
+        default: "pending"
+      feedback_status:
+        description: "Status for Feedback from the Field"
+        required: true
+        type: string
+        default: "pending"
+      operations_status:
+        description: "Status for Security Operations"
+        required: true
+        type: string
+        default: "pending"
+
+jobs:
+  generate-diagram:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install Mermaid CLI
+        run: npm install -g @mermaid-js/mermaid-cli
+
+      - name: Create Mermaid Diagram
+        run: |
+          echo "graph TD
+          A[Requirements and Use Cases]:::${{ inputs.requirements_status }} -->|Abuse Cases<br>Security Requirements| B[Architecture and Design]:::${{ inputs.architecture_status }}
+          B -->|Risk Analysis| C[Test Plans]:::${{ inputs.testplans_status }}
+          C -->|Risk-based Security Tests| D[Code]:::${{ inputs.code_status }}
+          D -->|Code Review| E[Tests and Test Results]:::${{ inputs.results_status }}
+          E -->|Risk Analysis| F[Feedback from the Field]:::${{ inputs.feedback_status }}
+          F -->|Penetration Testing| G[Security Operations]:::${{ inputs.operations_status }}
+          
+          classDef success fill:#9ff089,stroke:#237804,stroke-width:2px,rx:10px,ry:10px;
+          classDef error fill:#ff7b7b,stroke:#8c0000,stroke-width:2px,rx:10px,ry:10px;
+          classDef pending fill:#ffdb6d,stroke:#b59b01,stroke-width:2px,rx:10px,ry:10px;" > diagram.mmd
+
+      - name: Generate SVG from Mermaid
+        run: mmdc -i diagram.mmd -o diagram.svg
+
+      - name: Upload Diagram as Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: mermaid-diagram
+          path: diagram.svg

@@ -1,0 +1,89 @@
+name: 4. Report Code Status
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  
+  workflow_dispatch:
+    inputs:
+      code_status:
+        description: "Status for Code"
+        required: true
+        type: string
+        default: "pending"
+
+jobs:
+  analyze:
+    name: Analyser
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    outputs:
+      codeql_status: ${{ steps.set_status.outputs.status }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Opsæt .NET (tilpas versionen efter behov)
+      - name: Opsæt .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '6.0.x'  # Tilpas denne til din .NET version
+
+      # Initialiser CodeQL med manuel build-mode
+      - name: Initialiser CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
+          build-mode: manual  # Indstil til manuel bygning
+
+      # Manuelt byg af koden
+      - name: Gendan NuGet pakker
+        run: dotnet restore
+
+      - name: Byg projektet
+        run: dotnet build --configuration Release --no-restore
+        id: build
+        continue-on-error: true
+
+      # Kør CodeQL-analyse
+      - name: Udfør CodeQL Analyse
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:csharp"
+        id: codeql
+        continue-on-error: true
+
+      # Sæt status baseret på resultatet
+      - name: Sæt status
+        id: set_status
+        run: |
+          if [[ "${{ steps.build.outcome }}" == "failure" || "${{ steps.codeql.outcome }}" == "failure" ]]; then
+            echo "status=error" >> $GITHUB_OUTPUT
+          else
+            echo "status=success" >> $GITHUB_OUTPUT
+          fi
+  
+  report-status:
+    runs-on: ubuntu-latest
+    needs: analyze
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Report Status for Code
+        uses: ./.github/workflows/generate-mermaid.yml
+        with:
+          code_status: ${{ needs.analyze.outputs.codeql_status }}
+          requirements_status: success
+          architecture_status: success
+          testplans_status: success
+          results_status: pending
+          feedback_status: pending
+          operations_status: pending
