@@ -263,7 +263,7 @@ jobs:
   
   # Opdater diagram efter risk-based testing
   update_diagram_risktest:
-    needs: [ code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases ]
+    needs: [ code_analysis, architecture_risk, penetration_testing, risk_based_testing ]
     if: always() && (needs.abuse_cases.result == 'success' || needs.abuse_cases.result == 'failure')
     uses: ./.github/workflows/generate-mermaid.yml
     with:
