@@ -119,58 +119,38 @@ jobs:
 
       - name: Commit diagram to repository
         run: |
-          # Opret docs mappe hvis den ikke eksisterer
-          mkdir -p docs/images
+          # Opret midlertidig mappe til diagrammer
+          mkdir -p /tmp/diagrams
           
-          # Kopier diagrammer til docs mappen (sørg for at filerne eksisterer)
-          if [ -f diagram.svg ]; then
-          cp diagram.svg docs/images/
-          else
-          echo "Advarsel: diagram.svg findes ikke"
-          fi
+          # Kopier diagrammer til midlertidig mappe
+          cp diagram.svg /tmp/diagrams/ || echo "Ingen diagram.svg fundet"
+          cp diagram.png /tmp/diagrams/ || echo "Ingen diagram.png fundet"
+          cp security-touchpoints.md /tmp/diagrams/ || echo "Ingen security-touchpoints.md fundet"
           
-          if [ -f diagram.png ]; then
-          cp diagram.png docs/images/
-          else
-          echo "Advarsel: diagram.png findes ikke"
-          fi
-          
-          # Også kopier markdown-filen hvis den eksisterer
-          if [ -f security-touchpoints.md ]; then
-          cp security-touchpoints.md docs/
-          fi
+          # Start med et friskt repository
+          cd /tmp
+          git clone https://x-access-token:${{ github.token }}@github.com/${{ github.repository }} repo
+          cd repo
           
           # Sæt git konfiguration
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
           
-          # Konfigurer repository URL med token
-          git remote set-url origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
+          # Opret docs mappe hvis den ikke findes
+          mkdir -p docs/images
           
-          # Hent seneste ændringer for at undgå konflikter
-          git fetch origin
-          git pull --rebase origin ${{ github.ref_name }}
+          # Kopier diagrammer fra midlertidig mappe
+          cp /tmp/diagrams/diagram.svg docs/images/ 2>/dev/null || true
+          cp /tmp/diagrams/diagram.png docs/images/ 2>/dev/null || true
+          cp /tmp/diagrams/security-touchpoints.md docs/ 2>/dev/null || true
           
-          # Check om filerne eksisterer i docs-mappen før vi tilføjer dem
-          GIT_FILES_TO_ADD=""
-          if [ -f docs/images/diagram.svg ]; then
-          GIT_FILES_TO_ADD="$GIT_FILES_TO_ADD docs/images/diagram.svg"
-          fi
-          
-          if [ -f docs/images/diagram.png ]; then
-          GIT_FILES_TO_ADD="$GIT_FILES_TO_ADD docs/images/diagram.png"
-          fi
-          
-          if [ -f docs/security-touchpoints.md ]; then
-          GIT_FILES_TO_ADD="$GIT_FILES_TO_ADD docs/security-touchpoints.md"
-          fi
-          
-          # Kun commit hvis der er filer at tilføje
-          if [ -n "$GIT_FILES_TO_ADD" ]; then
-          git add $GIT_FILES_TO_ADD
+          # Tjek om der er ændringer
+          if git status --porcelain | grep -q "docs/"; then
+          # Add, commit og push
+          git add docs/
           git commit -m "Opdateret software security status diagram"
           git push origin HEAD:${{ github.ref_name }}
+          echo "Diagram opdateret og pushet"
           else
-          echo "Ingen filer at committe"
-          exit 1
+          echo "Ingen ændringer at committe"
           fi
