@@ -71,7 +71,7 @@ jobs:
   # Opdater diagram efter code analysis
   update_diagram_code:
     needs: code_analysis
-    if: always()  # Kør altid denne job, selv hvis code_analysis fejler
+    if: always() && (needs.code_analysis.result == 'success' || needs.code_analysis.result == 'failure')
     uses: ./.github/workflows/generate-mermaid.yml
     with:
       code_status: ${{ needs.code_analysis.result == 'success' && needs.code_analysis.outputs.status || 'error' }}
@@ -142,7 +142,7 @@ jobs:
   # Opdater diagram efter architectural risk analysis
   update_diagram_arch:
     needs: [ code_analysis, architecture_risk ]
-    if: always()  # Kør altid denne job, selv hvis architecture_risk fejler
+    if: always() && (needs.architecture_risk.result == 'success' || needs.architecture_risk.result == 'failure')
     uses: ./.github/workflows/generate-mermaid.yml
     with:
       code_status: ${{ needs.code_analysis.outputs.status }}
@@ -205,8 +205,8 @@ jobs:
   
   # Opdater diagram efter penetration testing
   update_diagram_pentest:
-    needs: [code_analysis, architecture_risk, penetration_testing]
-    if: always()  # Kør altid denne job, selv hvis penetration_testing fejler
+    needs: [ code_analysis, architecture_risk, penetration_testing ]
+    if: always() && (needs.penetration_testing.result == 'success' || needs.penetration_testing.result == 'failure')
     uses: ./.github/workflows/generate-mermaid.yml
     with:
       code_status: ${{ needs.code_analysis.outputs.status }}
@@ -263,8 +263,8 @@ jobs:
   
   # Opdater diagram efter risk-based testing
   update_diagram_risktest:
-    needs: [code_analysis, architecture_risk, penetration_testing, risk_based_testing]
-    uses: ./.github/workflows/generate-mermaid.yml
+    needs: [ code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases ]
+    if: always() && (needs.abuse_cases.result == 'success' || needs.abuse_cases.result == 'failure')
     with:
       code_status: ${{ needs.code_analysis.outputs.status }}
       architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
@@ -404,8 +404,8 @@ jobs:
   
   # Opdater diagram efter security requirements
   update_diagram_requirements:
-    needs: [code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases, security_requirements]
-    if: always()  # Kør altid denne job, selv hvis security_requirements fejler
+    needs: [ code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases, security_requirements ]
+    if: always() && (needs.security_requirements.result == 'success' || needs.security_requirements.result == 'failure')
     uses: ./.github/workflows/generate-mermaid.yml
     with:
       code_status: ${{ needs.code_analysis.outputs.status }}
@@ -477,8 +477,8 @@ jobs:
   
   # Opdater diagram efter security operations
   update_diagram_operations:
-    needs: [code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases, security_requirements, security_operations]
-    if: always()  # Kør altid denne job, selv hvis security_operations fejler
+    needs: [ code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases, security_requirements, security_operations ]
+    if: always() && (needs.security_operations.result == 'success' || needs.security_operations.result == 'failure')
     uses: ./.github/workflows/generate-mermaid.yml
     with:
       code_status: ${{ needs.code_analysis.outputs.status }}
