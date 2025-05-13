@@ -75,8 +75,7 @@ on:
         required: true
         type: string
         default: "pending"
-permissions:
-  contents: write
+
 jobs:
   generate-diagram:
     runs-on: ubuntu-latest

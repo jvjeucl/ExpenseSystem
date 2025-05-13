@@ -12,7 +12,8 @@ on:
           - success
           - error
           - pending
-
+permissions:
+  contents: write
 jobs:
   generate-diagram:
     uses: ./.github/workflows/generate-mermaid.yml
