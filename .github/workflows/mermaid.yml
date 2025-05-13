@@ -1,0 +1,26 @@
+name: Test Mermaid Generation
+
+on:
+  workflow_dispatch:
+    inputs:
+      code_status:
+        description: "Status for Code"
+        required: true
+        type: string
+        default: "success"
+        options:
+          - success
+          - error
+          - pending
+
+jobs:
+  generate-diagram:
+    uses: ./.github/workflows/generate-mermaid.yml
+    with:
+      code_status: ${{ github.event.inputs.code_status }}
+      requirements_status: "success"
+      architecture_status: "success"
+      testplans_status: "success"
+      results_status: "pending"
+      feedback_status: "pending"
+      operations_status: "pending"
