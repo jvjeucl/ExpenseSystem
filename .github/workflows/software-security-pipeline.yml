@@ -97,14 +97,13 @@ jobs:
           echo "Udfører arkitekturel risikoanalyse..."
           
           # EKSEMPEL: Søg efter arkitektur-relaterede filer og tjek for sikkerhedsmønstre
-          # Dette er bare en DEMO - erstat med din faktiske arkitekturanalyse
           
           # Find alle arkitektur-relaterede filer (f.eks. diagrammer, dokumentation)
-          ARCH_FILES=$(find . -type f -name "*.md" -o -name "*.puml" -o -name "*.drawio" | grep -i "arkitektur\|arch\|design" || echo "")
+          ARCH_FILES=$(find . -type f -name "*.md" -o -name "*.png" -o -name "*.drawio" | grep -i "arkitektur\|arch\|design" || echo "")
           
           if [ -z "$ARCH_FILES" ]; then
             echo "ADVARSEL: Ingen arkitekturdokumentation fundet!"
-            # exit 1  # Kommenter ind hvis du vil fejle når der mangler arkitekturdokumentation
+            exit 1  
           else
             echo "Arkitekturdokumentation fundet: $ARCH_FILES"
           
@@ -113,7 +112,7 @@ jobs:
           
             if [ -z "$SECURITY_MENTIONS" ]; then
               echo "ADVARSEL: Ingen sikkerhedsovervejelser fundet i arkitekturdokumenter!"
-              # exit 1  # Kommenter ind hvis du vil fejle når der mangler sikkerhedsovervejelser
+              exit 1  # Kommenter ind hvis du vil fejle når der mangler sikkerhedsovervejelser
             else
               echo "Sikkerhedsovervejelser fundet i arkitekturdokumenter"
             fi
