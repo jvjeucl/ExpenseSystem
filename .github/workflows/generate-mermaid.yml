@@ -3,74 +3,73 @@ name: Generate Mermaid Diagram
 on:
   workflow_call:
     inputs:
-      requirements_status:
-        description: "Status for Requirements and Use Cases"
-        required: true
-        type: string
-        default: "pending"
-      architecture_status:
-        description: "Status for Architecture and Design"
-        required: true
-        type: string
-        default: "pending"
-      testplans_status:
-        description: "Status for Test Plans"
-        required: true
-        type: string
-        default: "pending"
       code_status:
-        description: "Status for Code"
+        description: "Status for Code Analysis"
         required: true
         type: string
         default: "pending"
-      results_status:
-        description: "Status for Tests and Test Results"
+      architecture_risk_status:
+        description: "Status for Architecture Risks"
         required: true
         type: string
         default: "pending"
-      feedback_status:
-        description: "Status for Feedback from the Field"
+      penetration_testing_status:
+        description: "Status for Penetration Testing"
         required: true
         type: string
         default: "pending"
-      operations_status:
+      risk_based_status:
+        description: "Status for Risk-Based Security Testing"
+        required: true
+        type: string
+        default: "pending"
+      abuse_case_status:
+        description: "Status for Abuse Cases"
+        required: true
+        type: string
+        default: "pending"
+      security_requirements_status:
+        description: "Status for Security Requirements"
+        required: true
+        type: string
+        default: "pending"  
+      security_operations_status:
         description: "Status for Security Operations"
         required: true
         type: string
         default: "pending"
   workflow_dispatch:
-    inputs:
-      requirements_status:
-        description: "Status for Requirements and Use Cases"
-        required: true
-        type: string
-        default: "success"
-      architecture_status:
-        description: "Status for Architecture and Design"
-        required: true
-        type: string
-        default: "success"
-      testplans_status:
-        description: "Status for Test Plans"
-        required: true
-        type: string
-        default: "success"
       code_status:
-        description: "Status for Code"
-        required: true
-        type: string
-        default: "success"
-      results_status:
-        description: "Status for Tests and Test Results"
+        description: "Status for Code Analysis"
         required: true
         type: string
         default: "pending"
-      feedback_status:
-        description: "Status for Feedback from the Field"
+      architecture_risk_status:
+        description: "Status for Architecture Risks"
         required: true
         type: string
         default: "pending"
-      operations_status:
+      penetration_testing_status:
+        description: "Status for Penetration Testing"
+        required: true
+        type: string
+        default: "pending"
+      risk_based_status:
+        description: "Status for Risk-Based Security Testing"
+        required: true
+        type: string
+        default: "pending"
+      abuse_case_status:
+        description: "Status for Abuse Cases"
+        required: true
+        type: string
+        default: "pending"
+      security_requirements_status:
+        description: "Status for Security Requirements"
+        required: true
+        type: string
+        default: "pending"
+      security_operations_status:
         description: "Status for Security Operations"
         required: true
         type: string
@@ -88,12 +87,16 @@ jobs:
         run: |
           # Opret Mermaid diagram koden
           DIAGRAM="graph TD
-          A[Requirements and Use Cases]:::${{ inputs.requirements_status }} -->|Abuse Cases<br>Security Requirements| B[Architecture and Design]:::${{ inputs.architecture_status }}
-          B -->|Risk Analysis| C[Test Plans]:::${{ inputs.testplans_status }}
-          C -->|Risk-based Security Tests| D[Code]:::${{ inputs.code_status }}
-          D -->|Code Review| E[Tests and Test Results]:::${{ inputs.results_status }}
-          E -->|Risk Analysis| F[Feedback from the Field]:::${{ inputs.feedback_status }}
-          F -->|Penetration Testing| G[Security Operations]:::${{ inputs.operations_status }}
+          n1["Pending"]---n2["Success"]---n3["Error"]
+          n1:::pending
+          n2:::success
+          n3:::error
+          A[Code Analysis]:::${{ inputs.code_status }} -->B[Architecture Risks]:::${{ inputs.architecture_risk_status }}
+          B -->C[Penetration Testing]:::${{ inputs.penetration_testing_status }}
+          C -->D[Risk-Based Security Testing]:::${{ inputs.risk_based_status }}
+          D -->E[Abuse Cases]:::${{ inputs.abuse_case_status }}
+          E -->F[Security Requirements]:::${{ inputs.security_requirements_status }}
+          F -->G[Security Operations]:::${{ inputs.security_operations_status }}
           
           classDef success fill:#9ff089,stroke:#237804,stroke-width:2px,rx:10px,ry:10px;
           classDef error fill:#ff7b7b,stroke:#8c0000,stroke-width:2px,rx:10px,ry:10px;

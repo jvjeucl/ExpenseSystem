@@ -19,9 +19,9 @@ jobs:
     uses: ./.github/workflows/generate-mermaid.yml
     with:
       code_status: ${{ github.event.inputs.code_status }}
-      requirements_status: "success"
-      architecture_status: "success"
-      testplans_status: "success"
-      results_status: "pending"
-      feedback_status: "pending"
-      operations_status: "pending"
+      architecture_risk_status: "success"
+      penetration_testing_status: "success"
+      risk_based_status: "success"
+      abuse_case_status: "pending"
+      security_requirements_status: "pending"
+      security_operations_status: "pending"
