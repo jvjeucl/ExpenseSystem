@@ -278,15 +278,13 @@ jobs:
           echo "Verificerer abuse cases..."
           
           # EKSEMPEL: Tjek om der findes dokumentation for abuse cases
-          # Dette er bare en DEMO - erstat med din faktiske verifikation
           
           # Tjek for abuse case dokumentation
           ABUSE_FILES=$(find . -type f -name "*.md" -o -name "*.txt" | grep -i "abuse\|misuse\|angreb\|attack" || echo "")
           
           if [ -z "$ABUSE_FILES" ]; then
             echo "ADVARSEL: Ingen abuse case dokumentation fundet!"
-            # Kommenteret ud for at lade jobbet fortsætte for demo-formål
-            # exit 1
+             exit 1
           else
             echo "Abuse case dokumentation fundet: $ABUSE_FILES"
           
@@ -299,7 +297,7 @@ jobs:
           
               if [ -z "$ATTACKER_INFO" ] || [ -z "$TARGET_INFO" ] || [ -z "$DEFENSE_INFO" ]; then
                 echo "ADVARSEL: Abuse case $file mangler vigtige detaljer!"
-                # exit 1  # Kommenter ind for at fejle hvis abuse cases ikke er komplette
+                 exit 1  
               fi
             done
           fi
@@ -350,14 +348,13 @@ jobs:
           echo "Verificerer sikkerhedskrav..."
           
           # EKSEMPEL: Tjek om sikkerhedskrav er dokumenteret
-          # Dette er bare en DEMO - erstat med din faktiske verifikation
           
           # Tjek for sikkerhedskrav i kravspecifikation eller dokumentation
           REQ_FILES=$(find . -type f -name "*.md" -o -name "*.txt" -o -name "*.feature" | grep -i "krav\|requirements\|stories" || echo "")
           
           if [ -z "$REQ_FILES" ]; then
             echo "ADVARSEL: Ingen kravspecifikation fundet!"
-            # exit 1  # Kommenter ind for at fejle hvis der mangler kravspecifikation
+            exit 1  
           else
             echo "Kravspecifikation fundet: $REQ_FILES"
           
@@ -373,7 +370,6 @@ jobs:
             fi
           fi
           
-          # For demo-formål, lad dette trin lykkes
           exit 0
         id: verify
         continue-on-error: true
@@ -386,6 +382,7 @@ jobs:
           else
             echo "status=success" >> $GITHUB_OUTPUT
           fi
+  
   
   # Opdater diagram efter security requirements
   update_diagram_requirements:
@@ -419,14 +416,13 @@ jobs:
           echo "Opsætter sikkerhedsovervågning..."
           
           # EKSEMPEL: Verificer at der findes en overvågningsplan
-          # Dette er bare en DEMO - erstat med din faktiske implementering
           
           # Tjek for dokumentation af sikkerhedsovervågning
-          OPS_FILES=$(find . -type f -name "*.md" -o -name "*.txt" | grep -i "operations\|monitoring\|overvågning\|logging" || echo "")
+          OPS_FILES=$(find . -type f -name "*.md" -o -name "*.txt" | grep -i "monitoring\|overvågning\|operations\|logging" || echo "")
           
           if [ -z "$OPS_FILES" ]; then
             echo "ADVARSEL: Ingen dokumentation for sikkerhedsovervågning fundet!"
-            # exit 1  # Kommenter ind for at fejle hvis der mangler dokumentation
+           exit 1 
           else
             echo "Dokumentation for sikkerhedsovervågning fundet: $OPS_FILES"
           
@@ -444,7 +440,6 @@ jobs:
             done
           fi
           
-          # For demo-formål, lad dette trin lykkes
           exit 0
         id: setup
         continue-on-error: true
