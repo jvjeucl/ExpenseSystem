@@ -127,11 +127,11 @@ jobs:
           cp diagram.svg docs/images/
           cp diagram.png docs/images/
           
-          # Sæt git konfiguration
+          # Ændre git push kommandoen i generate-mermaid.yml til følgende:
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
           
-          # Tilføj, commit og push
+          # Brug PAT til at pushe ændringer
           git add docs/images/diagram.svg docs/images/diagram.png
           git commit -m "Opdateret software security status diagram"
-          git push
+          git push https://${{ secrets.PAT }}@github.com/jvjeucl/ExpenseSystem.git

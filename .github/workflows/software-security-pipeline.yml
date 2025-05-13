@@ -12,6 +12,10 @@ jobs:
   code_analysis:
     name: 1. Code Review
     runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write  # Vigtigt for CodeQL
     outputs:
       status: ${{ steps.set_status.outputs.status }}
     
