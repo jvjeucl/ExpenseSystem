@@ -17,8 +17,8 @@ jobs:
       contents: read
       security-events: write  # Vigtigt for CodeQL
     outputs:
-      status: ${{ steps.set_status.outputs.status }}
-    
+      status: ${{ steps.set_status.outputs.status || steps.set_error_status.outputs.status || 'error' }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -27,9 +27,9 @@ jobs:
       - name: Opsæt .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '7.0.x'  
-
-      # Initialiser CodeQL med manuel build-mode
+          dotnet-version: '7.0.x'
+            
+            # Initialiser CodeQL med manuel build-mode
       #- name: Initialiser CodeQL
       #  uses: github/codeql-action/init@v3
       #  with:
@@ -53,24 +53,28 @@ jobs:
       #    category: "/language:csharp"
       #  id: codeql
       #  continue-on-error: true
-
-      # Sæt status baseret på resultatet
-      - name: Sæt status
+            
+      # Sæt status baseret på resultatet ved succes
+      - name: Sæt status ved succes
+        if: success()
         id: set_status
-        #if [[ "${{ steps.build.outcome }}" == "failure" || "${{ steps.codeql.outcome }}" == "failure" ]]; then
-        #echo "status=error" >> $GITHUB_OUTPUT
-        #else
-        #echo "status=success" >> $GITHUB_OUTPUT
-        #fi
         run: |
-            echo "status=success" >> $GITHUB_OUTPUT
+          echo "status=success" >> $GITHUB_OUTPUT
+      
+      # Sæt status baseret på resultatet ved fejl
+      - name: Sæt status ved fejl
+        if: failure()
+        id: set_error_status
+        run: |
+          echo "status=error" >> $GITHUB_OUTPUT
 
   # Opdater diagram efter code analysis
   update_diagram_code:
     needs: code_analysis
+    if: always()  # Kør altid denne job, selv hvis code_analysis fejler
     uses: ./.github/workflows/generate-mermaid.yml
     with:
-      code_status: ${{ needs.code_analysis.outputs.status }}
+      code_status: ${{ needs.code_analysis.result == 'success' && needs.code_analysis.outputs.status || 'error' }}
       architecture_risk_status: "pending"
       penetration_testing_status: "pending"
       risk_based_status: "pending"
@@ -85,60 +89,64 @@ jobs:
     if: needs.code_analysis.outputs.status == 'success'
     runs-on: ubuntu-latest
     outputs:
-      status: ${{ steps.set_status.outputs.status }}
-    
+      status: ${{ steps.set_status.outputs.status || steps.set_error_status.outputs.status || 'error' }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
+
       # Her implementerer du faktiske trin for arkitekturel risikoanalyse
       - name: Udfør arkitekturel risikoanalyse
         run: |
           echo "Udfører arkitekturel risikoanalyse..."
-          
+
           # EKSEMPEL: Søg efter arkitektur-relaterede filer og tjek for sikkerhedsmønstre
-          
+
           # Find alle arkitektur-relaterede filer (f.eks. diagrammer, dokumentation)
           ARCH_FILES=$(find . -type f -name "*.md" -o -name "*.png" -o -name "*.drawio" | grep -i "arkitektur\|arch\|design" || echo "")
-          
+
           if [ -z "$ARCH_FILES" ]; then
             echo "ADVARSEL: Ingen arkitekturdokumentation fundet!"
             exit 1  
           else
             echo "Arkitekturdokumentation fundet: $ARCH_FILES"
-          
+
             # Tjek for sikkerhedsrelaterede nøgleord i arkitekturdokumenter
             SECURITY_MENTIONS=$(grep -i "sikkerhed\|security\|auth\|encryption\|kryptering" $ARCH_FILES || echo "")
-          
+
             if [ -z "$SECURITY_MENTIONS" ]; then
               echo "ADVARSEL: Ingen sikkerhedsovervejelser fundet i arkitekturdokumenter!"
-              exit 1  # Kommenter ind hvis du vil fejle når der mangler sikkerhedsovervejelser
+              exit 1  # Fejl når der mangler sikkerhedsovervejelser
             else
               echo "Sikkerhedsovervejelser fundet i arkitekturdokumenter"
             fi
           fi
-          
-          # For demo-formål, lad dette trin lykkes
+
+          # Hvis vi kommer hertil er alt gået godt
           exit 0
         id: analysis
-        continue-on-error: true
+        # Fjernet continue-on-error for at tillade fejl at stoppe jobbet
 
-      - name: Sæt status
+      - name: Sæt status ved succes
+        if: success()
         id: set_status
         run: |
-          if [[ "${{ steps.analysis.outcome }}" == "failure" ]]; then
-            echo "status=error" >> $GITHUB_OUTPUT
-          else
-            echo "status=success" >> $GITHUB_OUTPUT
-          fi
-  
+          echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: Sæt status ved fejl
+        if: failure()
+        id: set_error_status
+        run: |
+          echo "status=error" >> $GITHUB_OUTPUT
+
   # Opdater diagram efter architectural risk analysis
   update_diagram_arch:
-    needs: [code_analysis, architecture_risk]
+    needs: [ code_analysis, architecture_risk ]
+    if: always()  # Kør altid denne job, selv hvis architecture_risk fejler
     uses: ./.github/workflows/generate-mermaid.yml
     with:
       code_status: ${{ needs.code_analysis.outputs.status }}
-      architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
+      architecture_risk_status: ${{ needs.architecture_risk.result == 'success' && needs.architecture_risk.outputs.status || 'error' }}
       penetration_testing_status: "pending"
       risk_based_status: "pending"
       abuse_case_status: "pending"
@@ -152,7 +160,7 @@ jobs:
     if: needs.architecture_risk.outputs.status == 'success'
     runs-on: ubuntu-latest
     outputs:
-      status: ${{ steps.set_status.outputs.status }}
+      status: ${{ steps.set_status.outputs.status || steps.set_error_status.outputs.status || 'error' }}
     
     steps:
       - name: Checkout repository
@@ -181,30 +189,34 @@ jobs:
           # For demo-formål, lad dette trin lykkes
           exit 0
         id: pentest
-        continue-on-error: true
-
-      - name: Sæt status
+        # Fjernet continue-on-error for at lade fejl stoppe pipelinen
+  
+      - name: Sæt status ved succes
+        if: success()
         id: set_status
         run: |
-          if [[ "${{ steps.pentest.outcome }}" == "failure" ]]; then
-            echo "status=error" >> $GITHUB_OUTPUT
-          else
-            echo "status=success" >> $GITHUB_OUTPUT
-          fi
+          echo "status=success" >> $GITHUB_OUTPUT
+  
+      - name: Sæt status ved fejl
+        if: failure()
+        id: set_error_status
+        run: |
+          echo "status=error" >> $GITHUB_OUTPUT
   
   # Opdater diagram efter penetration testing
   update_diagram_pentest:
     needs: [code_analysis, architecture_risk, penetration_testing]
+    if: always()  # Kør altid denne job, selv hvis penetration_testing fejler
     uses: ./.github/workflows/generate-mermaid.yml
     with:
       code_status: ${{ needs.code_analysis.outputs.status }}
       architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
-      penetration_testing_status: ${{ needs.penetration_testing.outputs.status }}
+      penetration_testing_status: ${{ needs.penetration_testing.result == 'success' && needs.penetration_testing.outputs.status || 'error' }}
       risk_based_status: "pending"
       abuse_case_status: "pending"
       security_requirements_status: "pending"
       security_operations_status: "pending"
-
+  
   # 4. Risk-Based Security Testing (Touchpoint 4)
   risk_based_testing:
     name: 4. Risk-Based Security Testing
@@ -266,7 +278,7 @@ jobs:
     if: needs.risk_based_testing.outputs.status == 'success'
     runs-on: ubuntu-latest
     outputs:
-      status: ${{ steps.set_status.outputs.status }}
+      status: ${{ steps.set_status.outputs.status || steps.set_error_status.outputs.status || 'error' }}
     
     steps:
       - name: Checkout repository
@@ -301,24 +313,23 @@ jobs:
               fi
             done
           fi
-          
-          # For demo-formål, lad dette trin lykkes
-          exit 0
         id: verify
-        continue-on-error: true
-
-      - name: Sæt status
+  
+      - name: Sæt status ved succes
+        if: success()
         id: set_status
         run: |
-          if [[ "${{ steps.verify.outcome }}" == "failure" ]]; then
-            echo "status=error" >> $GITHUB_OUTPUT
-          else
-            echo "status=success" >> $GITHUB_OUTPUT
-          fi
+          echo "status=success" >> $GITHUB_OUTPUT
   
-  # Opdater diagram efter abuse cases
+      - name: Sæt status ved fejl
+        if: failure()
+        id: set_error_status
+        run: |
+          echo "status=error" >> $GITHUB_OUTPUT
+  # Opdater diagram efter code analysis
   update_diagram_abuse:
-    needs: [code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases]
+    needs: risk_based_testing
+    if: always()  # Kør altid denne job, selv hvis code_analysis fejler
     uses: ./.github/workflows/generate-mermaid.yml
     with:
       code_status: ${{ needs.code_analysis.outputs.status }}
@@ -328,7 +339,9 @@ jobs:
       abuse_case_status: ${{ needs.abuse_cases.outputs.status }}
       security_requirements_status: "pending"
       security_operations_status: "pending"
-
+      
+      
+      
   # 6. Security Requirements (Touchpoint 6)
   security_requirements:
     name: 6. Security Requirements
@@ -336,7 +349,7 @@ jobs:
     if: needs.abuse_cases.outputs.status == 'success'
     runs-on: ubuntu-latest
     outputs:
-      status: ${{ steps.set_status.outputs.status }}
+      status: ${{ steps.set_status.outputs.status || steps.set_error_status.outputs.status || 'error' }}
     
     steps:
       - name: Checkout repository
@@ -372,21 +385,24 @@ jobs:
           
           exit 0
         id: verify
-        continue-on-error: true
-
-      - name: Sæt status
+        # Fjernet continue-on-error for at lade fejl stoppe pipelinen
+  
+      - name: Sæt status ved succes
+        if: success()
         id: set_status
         run: |
-          if [[ "${{ steps.verify.outcome }}" == "failure" ]]; then
-            echo "status=error" >> $GITHUB_OUTPUT
-          else
-            echo "status=success" >> $GITHUB_OUTPUT
-          fi
+          echo "status=success" >> $GITHUB_OUTPUT
   
+      - name: Sæt status ved fejl
+        if: failure()
+        id: set_error_status
+        run: |
+          echo "status=error" >> $GITHUB_OUTPUT
   
   # Opdater diagram efter security requirements
   update_diagram_requirements:
     needs: [code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases, security_requirements]
+    if: always()  # Kør altid denne job, selv hvis security_requirements fejler
     uses: ./.github/workflows/generate-mermaid.yml
     with:
       code_status: ${{ needs.code_analysis.outputs.status }}
@@ -394,7 +410,7 @@ jobs:
       penetration_testing_status: ${{ needs.penetration_testing.outputs.status }}
       risk_based_status: ${{ needs.risk_based_testing.outputs.status }}
       abuse_case_status: ${{ needs.abuse_cases.outputs.status }}
-      security_requirements_status: ${{ needs.security_requirements.outputs.status }}
+      security_requirements_status: ${{ needs.security_requirements.result == 'success' && needs.security_requirements.outputs.status || 'error' }}
       security_operations_status: "pending"
 
   # 7. Security Operations (Touchpoint 7)
@@ -404,7 +420,7 @@ jobs:
     if: needs.security_requirements.outputs.status == 'success'
     runs-on: ubuntu-latest
     outputs:
-      status: ${{ steps.set_status.outputs.status }}
+      status: ${{ steps.set_status.outputs.status || steps.set_error_status.outputs.status || 'error' }}
     
     steps:
       - name: Checkout repository
@@ -444,18 +460,22 @@ jobs:
         id: setup
         continue-on-error: true
 
-      - name: Sæt status
+      - name: Sæt status ved succes
+        if: success()
         id: set_status
         run: |
-          if [[ "${{ steps.setup.outcome }}" == "failure" ]]; then
-            echo "status=error" >> $GITHUB_OUTPUT
-          else
-            echo "status=success" >> $GITHUB_OUTPUT
-          fi
+          echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: Sæt status ved fejl
+        if: failure()
+        id: set_error_status
+        run: |
+          echo "status=error" >> $GITHUB_OUTPUT
   
   # Opdater diagram efter security operations
   update_diagram_operations:
     needs: [code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases, security_requirements, security_operations]
+    if: always()  # Kør altid denne job, selv hvis security_operations fejler
     uses: ./.github/workflows/generate-mermaid.yml
     with:
       code_status: ${{ needs.code_analysis.outputs.status }}
