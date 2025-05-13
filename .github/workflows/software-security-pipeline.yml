@@ -1,0 +1,468 @@
+name: Software Security Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  # 1. Code Review (Touchpoint 1)
+  code_analysis:
+    name: 1. Code Review
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.set_status.outputs.status }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Opsæt .NET 
+      - name: Opsæt .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '7.0.x'  
+
+      # Initialiser CodeQL med manuel build-mode
+      - name: Initialiser CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: csharp
+          build-mode: manual  # manuel build
+
+      # Manuelt build af koden
+      - name: Gendan NuGet pakker
+        run: dotnet restore
+        continue-on-error: true
+
+      - name: build projektet
+        run: dotnet build --configuration Release --no-restore
+        id: build
+        continue-on-error: true
+
+      # Kør CodeQL-analyse
+      - name: Udfør CodeQL Analyse
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:csharp"
+        id: codeql
+        continue-on-error: true
+
+      # Sæt status baseret på resultatet
+      - name: Sæt status
+        id: set_status
+        run: |
+          if [[ "${{ steps.build.outcome }}" == "failure" || "${{ steps.codeql.outcome }}" == "failure" ]]; then
+            echo "status=error" >> $GITHUB_OUTPUT
+          else
+            echo "status=success" >> $GITHUB_OUTPUT
+          fi
+
+  # Opdater diagram efter code analysis
+  update_diagram_code:
+    needs: code_analysis
+    uses: ./.github/workflows/generate-mermaid.yml
+    with:
+      code_status: ${{ needs.code_analysis.outputs.status }}
+      architecture_risk_status: "pending"
+      penetration_testing_status: "pending"
+      risk_based_status: "pending"
+      abuse_case_status: "pending"
+      security_requirements_status: "pending"
+      security_operations_status: "pending"
+
+  # 2. Architectural Risk Analysis (Touchpoint 2)
+  architecture_risk:
+    name: 2. Architectural Risk Analysis
+    needs: code_analysis
+    if: needs.code_analysis.outputs.status == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.set_status.outputs.status }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      # Her implementerer du faktiske trin for arkitekturel risikoanalyse
+      - name: Udfør arkitekturel risikoanalyse
+        run: |
+          echo "Udfører arkitekturel risikoanalyse..."
+          
+          # EKSEMPEL: Søg efter arkitektur-relaterede filer og tjek for sikkerhedsmønstre
+          # Dette er bare en DEMO - erstat med din faktiske arkitekturanalyse
+          
+          # Find alle arkitektur-relaterede filer (f.eks. diagrammer, dokumentation)
+          ARCH_FILES=$(find . -type f -name "*.md" -o -name "*.puml" -o -name "*.drawio" | grep -i "arkitektur\|arch\|design" || echo "")
+          
+          if [ -z "$ARCH_FILES" ]; then
+            echo "ADVARSEL: Ingen arkitekturdokumentation fundet!"
+            # exit 1  # Kommenter ind hvis du vil fejle når der mangler arkitekturdokumentation
+          else
+            echo "Arkitekturdokumentation fundet: $ARCH_FILES"
+          
+            # Tjek for sikkerhedsrelaterede nøgleord i arkitekturdokumenter
+            SECURITY_MENTIONS=$(grep -i "sikkerhed\|security\|auth\|encryption\|kryptering" $ARCH_FILES || echo "")
+          
+            if [ -z "$SECURITY_MENTIONS" ]; then
+              echo "ADVARSEL: Ingen sikkerhedsovervejelser fundet i arkitekturdokumenter!"
+              # exit 1  # Kommenter ind hvis du vil fejle når der mangler sikkerhedsovervejelser
+            else
+              echo "Sikkerhedsovervejelser fundet i arkitekturdokumenter"
+            fi
+          fi
+          
+          # For demo-formål, lad dette trin lykkes
+          exit 0
+        id: analysis
+        continue-on-error: true
+
+      - name: Sæt status
+        id: set_status
+        run: |
+          if [[ "${{ steps.analysis.outcome }}" == "failure" ]]; then
+            echo "status=error" >> $GITHUB_OUTPUT
+          else
+            echo "status=success" >> $GITHUB_OUTPUT
+          fi
+  
+  # Opdater diagram efter architectural risk analysis
+  update_diagram_arch:
+    needs: [code_analysis, architecture_risk]
+    uses: ./.github/workflows/generate-mermaid.yml
+    with:
+      code_status: ${{ needs.code_analysis.outputs.status }}
+      architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
+      penetration_testing_status: "pending"
+      risk_based_status: "pending"
+      abuse_case_status: "pending"
+      security_requirements_status: "pending"
+      security_operations_status: "pending"
+
+  # 3. Penetration Testing (Touchpoint 3)
+  penetration_testing:
+    name: 3. Penetration Testing
+    needs: [code_analysis, architecture_risk]
+    if: needs.architecture_risk.outputs.status == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.set_status.outputs.status }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      # Her implementerer du faktiske trin for penetrationstest
+      - name: Udfør penetrationstest
+        run: |
+          echo "Udfører automatiseret penetrationstest..."
+          
+          # EKSEMPEL: Kør OWASP ZAP eller lignende værktøj
+          # Dette er bare en DEMO - erstat med din faktiske penetrationstest
+          
+          # Tjek om der er en kørende applikation at teste (Dette er normalt din testmiljø-URL)
+          APP_URL="http://localhost:8080"  # Bare et eksempel
+          
+          echo "Ville normalt udføre penetrationstest på $APP_URL"
+          echo "Tester for: SQL-injektion, XSS, CSRF, og andre OWASP Top 10 sårbarheder"
+          
+          # Simulerer testresultater
+          echo "Penetrationstestresultater:"
+          echo "- SQL-injektion: Ingen sårbarheder fundet"
+          echo "- XSS: Ingen sårbarheder fundet"
+          echo "- CSRF: Ingen sårbarheder fundet"
+          
+          # For demo-formål, lad dette trin lykkes
+          exit 0
+        id: pentest
+        continue-on-error: true
+
+      - name: Sæt status
+        id: set_status
+        run: |
+          if [[ "${{ steps.pentest.outcome }}" == "failure" ]]; then
+            echo "status=error" >> $GITHUB_OUTPUT
+          else
+            echo "status=success" >> $GITHUB_OUTPUT
+          fi
+  
+  # Opdater diagram efter penetration testing
+  update_diagram_pentest:
+    needs: [code_analysis, architecture_risk, penetration_testing]
+    uses: ./.github/workflows/generate-mermaid.yml
+    with:
+      code_status: ${{ needs.code_analysis.outputs.status }}
+      architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
+      penetration_testing_status: ${{ needs.penetration_testing.outputs.status }}
+      risk_based_status: "pending"
+      abuse_case_status: "pending"
+      security_requirements_status: "pending"
+      security_operations_status: "pending"
+
+  # 4. Risk-Based Security Testing (Touchpoint 4)
+  risk_based_testing:
+    name: 4. Risk-Based Security Testing
+    needs: [code_analysis, architecture_risk, penetration_testing]
+    if: needs.penetration_testing.outputs.status == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.set_status.outputs.status }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      # Her implementerer du faktiske trin for risikobaseret sikkerhedstest
+      - name: Udfør risikobaseret sikkerhedstest
+        run: |
+          echo "Udfører risikobaseret sikkerhedstest..."
+          
+          # EKSEMPEL: Implementer målrettede sikkerhedstest baseret på risikoanalyse
+          # Dette er bare en DEMO - erstat med dine faktiske risikobaserede tests
+          
+          # Simuler at læse risikoanalyse og udføre målrettede tests
+          echo "Risikobaserede testresultater:"
+          echo "- Test af adgangskontrol: Bestået"
+          echo "- Test af datavalidering: Bestået"
+          echo "- Test af sikker sessionshåndtering: Bestået"
+          
+          # For demo-formål, lad dette trin lykkes
+          exit 0
+        id: risktest
+        continue-on-error: true
+
+      - name: Sæt status
+        id: set_status
+        run: |
+          if [[ "${{ steps.risktest.outcome }}" == "failure" ]]; then
+            echo "status=error" >> $GITHUB_OUTPUT
+          else
+            echo "status=success" >> $GITHUB_OUTPUT
+          fi
+  
+  # Opdater diagram efter risk-based testing
+  update_diagram_risktest:
+    needs: [code_analysis, architecture_risk, penetration_testing, risk_based_testing]
+    uses: ./.github/workflows/generate-mermaid.yml
+    with:
+      code_status: ${{ needs.code_analysis.outputs.status }}
+      architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
+      penetration_testing_status: ${{ needs.penetration_testing.outputs.status }}
+      risk_based_status: ${{ needs.risk_based_testing.outputs.status }}
+      abuse_case_status: "pending"
+      security_requirements_status: "pending"
+      security_operations_status: "pending"
+
+  # 5. Abuse Cases (Touchpoint 5)
+  abuse_cases:
+    name: 5. Abuse Cases
+    needs: [code_analysis, architecture_risk, penetration_testing, risk_based_testing]
+    if: needs.risk_based_testing.outputs.status == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.set_status.outputs.status }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      # Her implementerer du faktiske trin for tjek af abuse cases
+      - name: Verificer abuse cases
+        run: |
+          echo "Verificerer abuse cases..."
+          
+          # EKSEMPEL: Tjek om der findes dokumentation for abuse cases
+          # Dette er bare en DEMO - erstat med din faktiske verifikation
+          
+          # Tjek for abuse case dokumentation
+          ABUSE_FILES=$(find . -type f -name "*.md" -o -name "*.txt" | grep -i "abuse\|misuse\|angreb\|attack" || echo "")
+          
+          if [ -z "$ABUSE_FILES" ]; then
+            echo "ADVARSEL: Ingen abuse case dokumentation fundet!"
+            # Kommenteret ud for at lade jobbet fortsætte for demo-formål
+            # exit 1
+          else
+            echo "Abuse case dokumentation fundet: $ABUSE_FILES"
+          
+            # Tjek for minimumskrav i abuse cases
+            for file in $ABUSE_FILES; do
+              echo "Verificerer $file for indhold om angriber, mål og forsvar..."
+              ATTACKER_INFO=$(grep -i "angriber\|attacker\|actor" $file || echo "")
+              TARGET_INFO=$(grep -i "mål\|target\|asset" $file || echo "")
+              DEFENSE_INFO=$(grep -i "forsvar\|defense\|mitigation" $file || echo "")
+          
+              if [ -z "$ATTACKER_INFO" ] || [ -z "$TARGET_INFO" ] || [ -z "$DEFENSE_INFO" ]; then
+                echo "ADVARSEL: Abuse case $file mangler vigtige detaljer!"
+                # exit 1  # Kommenter ind for at fejle hvis abuse cases ikke er komplette
+              fi
+            done
+          fi
+          
+          # For demo-formål, lad dette trin lykkes
+          exit 0
+        id: verify
+        continue-on-error: true
+
+      - name: Sæt status
+        id: set_status
+        run: |
+          if [[ "${{ steps.verify.outcome }}" == "failure" ]]; then
+            echo "status=error" >> $GITHUB_OUTPUT
+          else
+            echo "status=success" >> $GITHUB_OUTPUT
+          fi
+  
+  # Opdater diagram efter abuse cases
+  update_diagram_abuse:
+    needs: [code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases]
+    uses: ./.github/workflows/generate-mermaid.yml
+    with:
+      code_status: ${{ needs.code_analysis.outputs.status }}
+      architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
+      penetration_testing_status: ${{ needs.penetration_testing.outputs.status }}
+      risk_based_status: ${{ needs.risk_based_testing.outputs.status }}
+      abuse_case_status: ${{ needs.abuse_cases.outputs.status }}
+      security_requirements_status: "pending"
+      security_operations_status: "pending"
+
+  # 6. Security Requirements (Touchpoint 6)
+  security_requirements:
+    name: 6. Security Requirements
+    needs: [code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases]
+    if: needs.abuse_cases.outputs.status == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.set_status.outputs.status }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      # Her implementerer du faktiske trin for verifikation af sikkerhedskrav
+      - name: Verificer sikkerhedskrav
+        run: |
+          echo "Verificerer sikkerhedskrav..."
+          
+          # EKSEMPEL: Tjek om sikkerhedskrav er dokumenteret
+          # Dette er bare en DEMO - erstat med din faktiske verifikation
+          
+          # Tjek for sikkerhedskrav i kravspecifikation eller dokumentation
+          REQ_FILES=$(find . -type f -name "*.md" -o -name "*.txt" -o -name "*.feature" | grep -i "krav\|requirements\|stories" || echo "")
+          
+          if [ -z "$REQ_FILES" ]; then
+            echo "ADVARSEL: Ingen kravspecifikation fundet!"
+            # exit 1  # Kommenter ind for at fejle hvis der mangler kravspecifikation
+          else
+            echo "Kravspecifikation fundet: $REQ_FILES"
+          
+            # Tjek for sikkerhedskrav i kravspecifikationen
+            SECURITY_REQS=$(grep -i "sikkerhed\|security\|authentication\|authorization\|encryption" $REQ_FILES || echo "")
+          
+            if [ -z "$SECURITY_REQS" ]; then
+              echo "ADVARSEL: Ingen sikkerhedskrav fundet i kravspecifikationen!"
+              # exit 1  # Kommenter ind for at fejle hvis der mangler sikkerhedskrav
+            else
+              echo "Sikkerhedskrav fundet i kravspecifikationen:"
+              echo "$SECURITY_REQS"
+            fi
+          fi
+          
+          # For demo-formål, lad dette trin lykkes
+          exit 0
+        id: verify
+        continue-on-error: true
+
+      - name: Sæt status
+        id: set_status
+        run: |
+          if [[ "${{ steps.verify.outcome }}" == "failure" ]]; then
+            echo "status=error" >> $GITHUB_OUTPUT
+          else
+            echo "status=success" >> $GITHUB_OUTPUT
+          fi
+  
+  # Opdater diagram efter security requirements
+  update_diagram_requirements:
+    needs: [code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases, security_requirements]
+    uses: ./.github/workflows/generate-mermaid.yml
+    with:
+      code_status: ${{ needs.code_analysis.outputs.status }}
+      architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
+      penetration_testing_status: ${{ needs.penetration_testing.outputs.status }}
+      risk_based_status: ${{ needs.risk_based_testing.outputs.status }}
+      abuse_case_status: ${{ needs.abuse_cases.outputs.status }}
+      security_requirements_status: ${{ needs.security_requirements.outputs.status }}
+      security_operations_status: "pending"
+
+  # 7. Security Operations (Touchpoint 7)
+  security_operations:
+    name: 7. Security Operations
+    needs: [code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases, security_requirements]
+    if: needs.security_requirements.outputs.status == 'success'
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ steps.set_status.outputs.status }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      # Her implementerer du faktiske trin for sikkerhedsoperationer
+      - name: Opsæt sikkerhedsovervågning
+        run: |
+          echo "Opsætter sikkerhedsovervågning..."
+          
+          # EKSEMPEL: Verificer at der findes en overvågningsplan
+          # Dette er bare en DEMO - erstat med din faktiske implementering
+          
+          # Tjek for dokumentation af sikkerhedsovervågning
+          OPS_FILES=$(find . -type f -name "*.md" -o -name "*.txt" | grep -i "operations\|monitoring\|overvågning\|logging" || echo "")
+          
+          if [ -z "$OPS_FILES" ]; then
+            echo "ADVARSEL: Ingen dokumentation for sikkerhedsovervågning fundet!"
+            # exit 1  # Kommenter ind for at fejle hvis der mangler dokumentation
+          else
+            echo "Dokumentation for sikkerhedsovervågning fundet: $OPS_FILES"
+          
+            # Tjek for minimumskrav i sikkerhedsovervågningsplanen
+            for file in $OPS_FILES; do
+              echo "Verificerer $file for overvågningsdetaljer..."
+              LOGGING_INFO=$(grep -i "logging\|log\|audit" $file || echo "")
+              ALERT_INFO=$(grep -i "alert\|alarm\|notifikation" $file || echo "")
+              RESPONSE_INFO=$(grep -i "response\|reaktion\|incident" $file || echo "")
+          
+              if [ -z "$LOGGING_INFO" ] || [ -z "$ALERT_INFO" ] || [ -z "$RESPONSE_INFO" ]; then
+                echo "ADVARSEL: Sikkerhedsovervågningsplan $file mangler vigtige detaljer!"
+                # exit 1  # Kommenter ind for at fejle hvis overvågningsplanen ikke er komplet
+              fi
+            done
+          fi
+          
+          # For demo-formål, lad dette trin lykkes
+          exit 0
+        id: setup
+        continue-on-error: true
+
+      - name: Sæt status
+        id: set_status
+        run: |
+          if [[ "${{ steps.setup.outcome }}" == "failure" ]]; then
+            echo "status=error" >> $GITHUB_OUTPUT
+          else
+            echo "status=success" >> $GITHUB_OUTPUT
+          fi
+  
+  # Opdater diagram efter security operations
+  update_diagram_operations:
+    needs: [code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases, security_requirements, security_operations]
+    uses: ./.github/workflows/generate-mermaid.yml
+    with:
+      code_status: ${{ needs.code_analysis.outputs.status }}
+      architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
+      penetration_testing_status: ${{ needs.penetration_testing.outputs.status }}
+      risk_based_status: ${{ needs.risk_based_testing.outputs.status }}
+      abuse_case_status: ${{ needs.abuse_cases.outputs.status }}
+      security_requirements_status: ${{ needs.security_requirements.outputs.status }}
+      security_operations_status: ${{ needs.security_operations.outputs.status }}

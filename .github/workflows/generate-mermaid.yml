@@ -32,48 +32,48 @@ on:
         description: "Status for Security Requirements"
         required: true
         type: string
-        default: "pending"  
+        default: "pending"
       security_operations_status:
         description: "Status for Security Operations"
         required: true
         type: string
         default: "pending"
   workflow_dispatch:
-      code_status:
-        description: "Status for Code Analysis"
-        required: true
-        type: string
-        default: "pending"
-      architecture_risk_status:
-        description: "Status for Architecture Risks"
-        required: true
-        type: string
-        default: "pending"
-      penetration_testing_status:
-        description: "Status for Penetration Testing"
-        required: true
-        type: string
-        default: "pending"
-      risk_based_status:
-        description: "Status for Risk-Based Security Testing"
-        required: true
-        type: string
-        default: "pending"
-      abuse_case_status:
-        description: "Status for Abuse Cases"
-        required: true
-        type: string
-        default: "pending"
-      security_requirements_status:
-        description: "Status for Security Requirements"
-        required: true
-        type: string
-        default: "pending"
-      security_operations_status:
-        description: "Status for Security Operations"
-        required: true
-        type: string
-        default: "pending"
+    code_status:
+      description: "Status for Code Analysis"
+      required: true
+      type: string
+      default: "pending"
+    architecture_risk_status:
+      description: "Status for Architecture Risks"
+      required: true
+      type: string
+      default: "pending"
+    penetration_testing_status:
+      description: "Status for Penetration Testing"
+      required: true
+      type: string
+      default: "pending"
+    risk_based_status:
+      description: "Status for Risk-Based Security Testing"
+      required: true
+      type: string
+      default: "pending"
+    abuse_case_status:
+      description: "Status for Abuse Cases"
+      required: true
+      type: string
+      default: "pending"
+    security_requirements_status:
+      description: "Status for Security Requirements"
+      required: true
+      type: string
+      default: "pending"
+    security_operations_status:
+      description: "Status for Security Operations"
+      required: true
+      type: string
+      default: "pending"
 
 jobs:
   generate-diagram:
@@ -87,7 +87,7 @@ jobs:
         run: |
           # Opret Mermaid diagram koden
           DIAGRAM="graph TD
-          n1["Pending"]---n2["Success"]---n3["Error"]
+          n1[\"Pending\"]---n2[\"Success\"]---n3[\"Error\"]
           n1:::pending
           n2:::success
           n3:::error
@@ -130,7 +130,7 @@ jobs:
           # Sæt git konfiguration
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
-           
+          
           # Tilføj, commit og push
           git add docs/images/diagram.svg docs/images/diagram.png
           git commit -m "Opdateret software security status diagram"
