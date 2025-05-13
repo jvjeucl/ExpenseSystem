@@ -50,7 +50,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '16'
+          node-version: '18'
 
       - name: Install Mermaid CLI
         run: npm install -g @mermaid-js/mermaid-cli
@@ -70,7 +70,8 @@ jobs:
           classDef pending fill:#ffdb6d,stroke:#b59b01,stroke-width:2px,rx:10px,ry:10px;" > diagram.mmd
 
       - name: Generate SVG from Mermaid
-        run: mmdc -i diagram.mmd -o diagram.svg
+        run: |
+          mmdc -i diagram.mmd -o diagram.svg --puppeteerConfig '{"args": ["--no-sandbox"]}'
 
       - name: Upload Diagram as Artifact
         uses: actions/upload-artifact@v4
