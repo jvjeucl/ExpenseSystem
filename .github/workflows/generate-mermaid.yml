@@ -74,8 +74,6 @@ on:
       required: true
       type: string
       default: "pending"
-permissions:
-  contents: write  # Eksplicit give skriverettigheder
 jobs:
   generate-diagram:
     runs-on: ubuntu-latest
@@ -135,4 +133,5 @@ jobs:
           # Brug PAT til at pushe ændringer
           git add docs/images/diagram.svg docs/images/diagram.png
           git commit -m "Opdateret software security status diagram"
-          git push https://${{ secrets.PAT }}@github.com/jvjeucl/ExpenseSystem.git
+          git remote set-url origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
+          git push origin HEAD:${{ github.ref }}
