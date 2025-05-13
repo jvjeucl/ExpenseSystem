@@ -331,8 +331,8 @@ jobs:
           echo "status=error" >> $GITHUB_OUTPUT
   # Opdater diagram efter code analysis
   update_diagram_abuse:
-    needs: risk_based_testing
-    if: always()  # Kør altid denne job, selv hvis code_analysis fejler
+    needs: [ code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases ]
+    if: always() && (needs.abuse_cases.result == 'success' || needs.abuse_cases.result == 'failure')
     uses: ./.github/workflows/generate-mermaid.yml
     with:
       code_status: ${{ needs.code_analysis.outputs.status }}
