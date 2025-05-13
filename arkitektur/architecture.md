@@ -2,5 +2,3 @@
 
 
 Buzzword Bingo
-kryptering
-auth
