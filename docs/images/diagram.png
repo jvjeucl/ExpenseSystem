@@ -1,4 +1,0 @@
-Parse error on line 6:
-...A[Code Analysis]::: -->B[Architecture R
-----------------------^
-Expecting 'AMP', 'COLON', 'DOWN', 'DEFAULT', 'NUM', 'COMMA', 'NODE_STRING', 'BRKT', 'MINUS', 'MULT', 'UNICODE_TEXT', got 'LINK'
