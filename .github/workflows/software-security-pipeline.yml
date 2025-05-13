@@ -69,18 +69,18 @@ jobs:
           echo "status=error" >> $GITHUB_OUTPUT
 
   # Opdater diagram efter code analysis
-  update_diagram_code:
-    needs: code_analysis
-    if: always()  # Kør altid denne job, selv hvis code_analysis fejler
-    uses: ./.github/workflows/generate-mermaid.yml
-    with:
-      code_status: ${{ needs.code_analysis.result == 'success' && needs.code_analysis.outputs.status || 'error' }}
-      architecture_risk_status: "pending"
-      penetration_testing_status: "pending"
-      risk_based_status: "pending"
-      abuse_case_status: "pending"
-      security_requirements_status: "pending"
-      security_operations_status: "pending"
+    update_diagram_code:
+      needs: code_analysis
+      if: always()  # Kør altid denne job, selv hvis code_analysis fejler
+      uses: ./.github/workflows/generate-mermaid.yml
+      with:
+        code_status: ${{ needs.code_analysis.result == 'success' && needs.code_analysis.outputs.status || 'error' }}
+        architecture_risk_status: "pending"
+        penetration_testing_status: "pending"
+        risk_based_status: "pending"
+        abuse_case_status: "pending"
+        security_requirements_status: "pending"
+        security_operations_status: "pending"
 
   # 2. Architectural Risk Analysis (Touchpoint 2)
   architecture_risk:
@@ -140,18 +140,18 @@ jobs:
           echo "status=error" >> $GITHUB_OUTPUT
 
   # Opdater diagram efter architectural risk analysis
-  update_diagram_arch:
-    needs: [ code_analysis, architecture_risk ]
-    if: always()  # Kør altid denne job, selv hvis architecture_risk fejler
-    uses: ./.github/workflows/generate-mermaid.yml
-    with:
-      code_status: ${{ needs.code_analysis.outputs.status }}
-      architecture_risk_status: ${{ needs.architecture_risk.result == 'success' && needs.architecture_risk.outputs.status || 'error' }}
-      penetration_testing_status: "pending"
-      risk_based_status: "pending"
-      abuse_case_status: "pending"
-      security_requirements_status: "pending"
-      security_operations_status: "pending"
+    update_diagram_arch:
+      needs: [ code_analysis, architecture_risk ]
+      if: always()  # Kør altid denne job, selv hvis architecture_risk fejler
+      uses: ./.github/workflows/generate-mermaid.yml
+      with:
+        code_status: ${{ needs.code_analysis.outputs.status }}
+        architecture_risk_status: ${{ needs.architecture_risk.result == 'success' && needs.architecture_risk.outputs.status || 'error' }}
+        penetration_testing_status: "pending"
+        risk_based_status: "pending"
+        abuse_case_status: "pending"
+        security_requirements_status: "pending"
+        security_operations_status: "pending"
 
   # 3. Penetration Testing (Touchpoint 3)
   penetration_testing:
@@ -204,18 +204,18 @@ jobs:
           echo "status=error" >> $GITHUB_OUTPUT
   
   # Opdater diagram efter penetration testing
-  update_diagram_pentest:
-    needs: [code_analysis, architecture_risk, penetration_testing]
-    if: always()  # Kør altid denne job, selv hvis penetration_testing fejler
-    uses: ./.github/workflows/generate-mermaid.yml
-    with:
-      code_status: ${{ needs.code_analysis.outputs.status }}
-      architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
-      penetration_testing_status: ${{ needs.penetration_testing.result == 'success' && needs.penetration_testing.outputs.status || 'error' }}
-      risk_based_status: "pending"
-      abuse_case_status: "pending"
-      security_requirements_status: "pending"
-      security_operations_status: "pending"
+    update_diagram_pentest:
+      needs: [code_analysis, architecture_risk, penetration_testing]
+      if: always()  # Kør altid denne job, selv hvis penetration_testing fejler
+      uses: ./.github/workflows/generate-mermaid.yml
+      with:
+        code_status: ${{ needs.code_analysis.outputs.status }}
+        architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
+        penetration_testing_status: ${{ needs.penetration_testing.result == 'success' && needs.penetration_testing.outputs.status || 'error' }}
+        risk_based_status: "pending"
+        abuse_case_status: "pending"
+        security_requirements_status: "pending"
+        security_operations_status: "pending"
   
   # 4. Risk-Based Security Testing (Touchpoint 4)
   risk_based_testing:
@@ -262,17 +262,17 @@ jobs:
           echo "status=error" >> $GITHUB_OUTPUT
   
   # Opdater diagram efter risk-based testing
-  update_diagram_risktest:
-    needs: [code_analysis, architecture_risk, penetration_testing, risk_based_testing]
-    uses: ./.github/workflows/generate-mermaid.yml
-    with:
-      code_status: ${{ needs.code_analysis.outputs.status }}
-      architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
-      penetration_testing_status: ${{ needs.penetration_testing.outputs.status }}
-      risk_based_status: ${{ needs.risk_based_testing.outputs.status }}
-      abuse_case_status: "pending"
-      security_requirements_status: "pending"
-      security_operations_status: "pending"
+    update_diagram_risktest:
+      needs: [code_analysis, architecture_risk, penetration_testing, risk_based_testing]
+      uses: ./.github/workflows/generate-mermaid.yml
+      with:
+        code_status: ${{ needs.code_analysis.outputs.status }}
+        architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
+        penetration_testing_status: ${{ needs.penetration_testing.outputs.status }}
+        risk_based_status: ${{ needs.risk_based_testing.outputs.status }}
+        abuse_case_status: "pending"
+        security_requirements_status: "pending"
+        security_operations_status: "pending"
 
   # 5. Abuse Cases (Touchpoint 5)
   abuse_cases:
@@ -330,18 +330,18 @@ jobs:
         run: |
           echo "status=error" >> $GITHUB_OUTPUT
   # Opdater diagram efter code analysis
-  update_diagram_abuse:
-    needs: risk_based_testing
-    if: always()  # Kør altid denne job, selv hvis code_analysis fejler
-    uses: ./.github/workflows/generate-mermaid.yml
-    with:
-      code_status: ${{ needs.code_analysis.outputs.status }}
-      architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
-      penetration_testing_status: ${{ needs.penetration_testing.outputs.status }}
-      risk_based_status: ${{ needs.risk_based_testing.outputs.status }}
-      abuse_case_status: ${{ needs.abuse_cases.outputs.status }}
-      security_requirements_status: "pending"
-      security_operations_status: "pending"
+    update_diagram_abuse:
+      needs: risk_based_testing
+      if: always()  # Kør altid denne job, selv hvis code_analysis fejler
+      uses: ./.github/workflows/generate-mermaid.yml
+      with:
+        code_status: ${{ needs.code_analysis.outputs.status }}
+        architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
+        penetration_testing_status: ${{ needs.penetration_testing.outputs.status }}
+        risk_based_status: ${{ needs.risk_based_testing.outputs.status }}
+        abuse_case_status: ${{ needs.abuse_cases.outputs.status }}
+        security_requirements_status: "pending"
+        security_operations_status: "pending"
       
       
       
@@ -403,18 +403,18 @@ jobs:
           echo "status=error" >> $GITHUB_OUTPUT
   
   # Opdater diagram efter security requirements
-  update_diagram_requirements:
-    needs: [code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases, security_requirements]
-    if: always()  # Kør altid denne job, selv hvis security_requirements fejler
-    uses: ./.github/workflows/generate-mermaid.yml
-    with:
-      code_status: ${{ needs.code_analysis.outputs.status }}
-      architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
-      penetration_testing_status: ${{ needs.penetration_testing.outputs.status }}
-      risk_based_status: ${{ needs.risk_based_testing.outputs.status }}
-      abuse_case_status: ${{ needs.abuse_cases.outputs.status }}
-      security_requirements_status: ${{ needs.security_requirements.result == 'success' && needs.security_requirements.outputs.status || 'error' }}
-      security_operations_status: "pending"
+    update_diagram_requirements:
+      needs: [code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases, security_requirements]
+      if: always()  # Kør altid denne job, selv hvis security_requirements fejler
+      uses: ./.github/workflows/generate-mermaid.yml
+      with:
+        code_status: ${{ needs.code_analysis.outputs.status }}
+        architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
+        penetration_testing_status: ${{ needs.penetration_testing.outputs.status }}
+        risk_based_status: ${{ needs.risk_based_testing.outputs.status }}
+        abuse_case_status: ${{ needs.abuse_cases.outputs.status }}
+        security_requirements_status: ${{ needs.security_requirements.result == 'success' && needs.security_requirements.outputs.status || 'error' }}
+        security_operations_status: "pending"
 
   # 7. Security Operations (Touchpoint 7)
   security_operations:
@@ -476,15 +476,15 @@ jobs:
           echo "status=error" >> $GITHUB_OUTPUT
   
   # Opdater diagram efter security operations
-  update_diagram_operations:
-    needs: [code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases, security_requirements, security_operations]
-    if: always()  # Kør altid denne job, selv hvis security_operations fejler
-    uses: ./.github/workflows/generate-mermaid.yml
-    with:
-      code_status: ${{ needs.code_analysis.outputs.status }}
-      architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
-      penetration_testing_status: ${{ needs.penetration_testing.outputs.status }}
-      risk_based_status: ${{ needs.risk_based_testing.outputs.status }}
-      abuse_case_status: ${{ needs.abuse_cases.outputs.status }}
-      security_requirements_status: ${{ needs.security_requirements.outputs.status }}
-      security_operations_status: ${{ needs.security_operations.outputs.status }}
+    update_diagram_operations:
+      needs: [code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases, security_requirements, security_operations]
+      if: always()  # Kør altid denne job, selv hvis security_operations fejler
+      uses: ./.github/workflows/generate-mermaid.yml
+      with:
+        code_status: ${{ needs.code_analysis.outputs.status }}
+        architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
+        penetration_testing_status: ${{ needs.penetration_testing.outputs.status }}
+        risk_based_status: ${{ needs.risk_based_testing.outputs.status }}
+        abuse_case_status: ${{ needs.abuse_cases.outputs.status }}
+        security_requirements_status: ${{ needs.security_requirements.outputs.status }}
+        security_operations_status: ${{ needs.security_operations.outputs.status }}
