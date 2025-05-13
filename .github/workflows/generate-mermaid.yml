@@ -122,9 +122,23 @@ jobs:
           # Opret docs mappe hvis den ikke eksisterer
           mkdir -p docs/images
           
-          # Kopier diagrammer til docs mappen
+          # Kopier diagrammer til docs mappen (sørg for at filerne eksisterer)
+          if [ -f diagram.svg ]; then
           cp diagram.svg docs/images/
+          else
+          echo "Advarsel: diagram.svg findes ikke"
+          fi
+          
+          if [ -f diagram.png ]; then
           cp diagram.png docs/images/
+          else
+          echo "Advarsel: diagram.png findes ikke"
+          fi
+          
+          # Også kopier markdown-filen hvis den eksisterer
+          if [ -f security-touchpoints.md ]; then
+          cp security-touchpoints.md docs/
+          fi
           
           # Sæt git konfiguration
           git config --global user.name "GitHub Actions Bot"
@@ -137,7 +151,26 @@ jobs:
           git fetch origin
           git pull --rebase origin ${{ github.ref_name }}
           
-          # Tilføj, commit og push
-          git add docs/images/diagram.svg docs/images/diagram.png
+          # Check om filerne eksisterer i docs-mappen før vi tilføjer dem
+          GIT_FILES_TO_ADD=""
+          if [ -f docs/images/diagram.svg ]; then
+          GIT_FILES_TO_ADD="$GIT_FILES_TO_ADD docs/images/diagram.svg"
+          fi
+          
+          if [ -f docs/images/diagram.png ]; then
+          GIT_FILES_TO_ADD="$GIT_FILES_TO_ADD docs/images/diagram.png"
+          fi
+          
+          if [ -f docs/security-touchpoints.md ]; then
+          GIT_FILES_TO_ADD="$GIT_FILES_TO_ADD docs/security-touchpoints.md"
+          fi
+          
+          # Kun commit hvis der er filer at tilføje
+          if [ -n "$GIT_FILES_TO_ADD" ]; then
+          git add $GIT_FILES_TO_ADD
           git commit -m "Opdateret software security status diagram"
           git push origin HEAD:${{ github.ref_name }}
+          else
+          echo "Ingen filer at committe"
+          exit 1
+          fi
