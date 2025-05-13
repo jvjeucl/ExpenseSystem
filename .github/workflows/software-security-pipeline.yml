@@ -265,6 +265,7 @@ jobs:
   update_diagram_risktest:
     needs: [ code_analysis, architecture_risk, penetration_testing, risk_based_testing, abuse_cases ]
     if: always() && (needs.abuse_cases.result == 'success' || needs.abuse_cases.result == 'failure')
+    uses: ./.github/workflows/generate-mermaid.yml
     with:
       code_status: ${{ needs.code_analysis.outputs.status }}
       architecture_risk_status: ${{ needs.architecture_risk.outputs.status }}
