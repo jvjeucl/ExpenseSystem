@@ -1,4 +1,4 @@
-Parse error on line 7:
-...etration Testing]:::C -->D[Risk-Based S
------------------------^
-Expecting 'AMP', 'COLON', 'DOWN', 'DEFAULT', 'NUM', 'COMMA', 'NODE_STRING', 'BRKT', 'MINUS', 'MULT', 'UNICODE_TEXT', got 'NEWLINE'
+Parse error on line 6:
+...A[Code Analysis]::: -->B[Architecture R
+----------------------^
+Expecting 'AMP', 'COLON', 'DOWN', 'DEFAULT', 'NUM', 'COMMA', 'NODE_STRING', 'BRKT', 'MINUS', 'MULT', 'UNICODE_TEXT', got 'LINK'
