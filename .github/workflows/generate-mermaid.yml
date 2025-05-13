@@ -55,9 +55,12 @@ jobs:
       - name: Install Mermaid CLI
         run: npm install -g @mermaid-js/mermaid-cli
 
-      - name: Create Mermaid Diagram
+      - name: Create Mermaid Diagram Markdown
         run: |
-          echo "graph TD
+          echo '# Software Security Touchpoints Status
+
+          ```mermaid
+          graph TD
           A[Requirements and Use Cases]:::${{ inputs.requirements_status }} -->|Abuse Cases<br>Security Requirements| B[Architecture and Design]:::${{ inputs.architecture_status }}
           B -->|Risk Analysis| C[Test Plans]:::${{ inputs.testplans_status }}
           C -->|Risk-based Security Tests| D[Code]:::${{ inputs.code_status }}
@@ -67,20 +70,19 @@ jobs:
           
           classDef success fill:#9ff089,stroke:#237804,stroke-width:2px,rx:10px,ry:10px;
           classDef error fill:#ff7b7b,stroke:#8c0000,stroke-width:2px,rx:10px,ry:10px;
-          classDef pending fill:#ffdb6d,stroke:#b59b01,stroke-width:2px,rx:10px,ry:10px;" > diagram.mmd
+          classDef pending fill:#ffdb6d,stroke:#b59b01,stroke-width:2px,rx:10px,ry:10px;
+          ```
 
-      - name: Generate SVG from Mermaid
-        uses: magjac/mermaid-diagram-action@v1
-        with:
-          input-file: diagram.mmd
-          output-file: diagram.svg
-          mermaid-config: |
-            {
-              "theme": "default"
-            }
+          *Diagram automatisk genereret baseret på status fra CI/CD pipeline.*
+          ' > security-touchpoints.md
+          
+      - name: Render Mermaid diagrams
+        uses: nielsvaneck/render-md-mermaid@v2
 
       - name: Upload Diagram as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: mermaid-diagram
-          path: diagram.svg
+          path: |
+            security-touchpoints*.svg
+            security-touchpoints*.png
