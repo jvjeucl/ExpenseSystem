@@ -71,7 +71,8 @@ jobs:
 
       - name: Generate SVG from Mermaid
         run: |
-          mmdc -i diagram.mmd -o diagram.svg -p '{"args": ["--no-sandbox"]}'
+          echo '{"puppeteerConfig": {"args": ["--no-sandbox"]}}' > config.json
+          mmdc -i diagram.mmd -o diagram.svg -c config.json
 
       - name: Upload Diagram as Artifact
         uses: actions/upload-artifact@v4
