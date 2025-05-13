@@ -249,14 +249,17 @@ jobs:
         id: risktest
         continue-on-error: true
 
-      - name: Sæt status
+      - name: Sæt status ved succes
+        if: success()
         id: set_status
         run: |
-          if [[ "${{ steps.risktest.outcome }}" == "failure" ]]; then
-            echo "status=error" >> $GITHUB_OUTPUT
-          else
-            echo "status=success" >> $GITHUB_OUTPUT
-          fi
+          echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: Sæt status ved fejl
+        if: failure()
+        id: set_error_status
+        run: |
+          echo "status=error" >> $GITHUB_OUTPUT
   
   # Opdater diagram efter risk-based testing
   update_diagram_risktest:
